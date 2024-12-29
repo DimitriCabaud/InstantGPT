@@ -7,7 +7,7 @@ import requests
 import base64
 from openai import OpenAI
 from dotenv import load_dotenv
-import tkinter as tk
+import customtkinter as ctk
 import threading
 import time
 from PIL import ImageGrab, Image
@@ -35,24 +35,30 @@ def show_recording_animation():
     """
     Affiche une fenêtre visuellement agréable avec un point rouge animé et un chrono pendant l'enregistrement.
     """
-    window = tk.Tk()
+    # Initialiser la fenêtre
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("blue")
+    window = ctk.CTk()
     window.title("Enregistrement en cours")
-    window.geometry("300x150")
-    window.configure(bg="#2C2F33")
+    window.geometry("400x200")
 
-    # Titre
-    title_label = tk.Label(window, text="🔴 Enregistrement...", fg="white", bg="#2C2F33", font=("Helvetica", 16, "bold"))
+    # Titre principal
+    title_label = ctk.CTkLabel(window, text="🔴 Enregistrement...", font=("Helvetica", 18, "bold"))
     title_label.pack(pady=10)
 
-    # Animation de point rouge
-    canvas = tk.Canvas(window, width=50, height=50, bg="#2C2F33", highlightthickness=0)
+    # Cadre pour l'animation
+    animation_frame = ctk.CTkFrame(window, width=80, height=80, corner_radius=10)
+    animation_frame.pack(pady=10)
+
+    canvas = ctk.CTkCanvas(animation_frame, width=50, height=50, bg="#1A1A1A", highlightthickness=0)
     canvas.pack()
     point = canvas.create_oval(10, 10, 40, 40, fill="red")
 
-    # Chrono
-    chrono_label = tk.Label(window, text="0:00", fg="white", bg="#2C2F33", font=("Helvetica", 14))
+    # Chronomètre
+    chrono_label = ctk.CTkLabel(window, text="0:00", font=("Helvetica", 16))
     chrono_label.pack(pady=10)
 
+    # Animation du point rouge
     def animate_point():
         while True:
             for i in range(5):
@@ -64,18 +70,20 @@ def show_recording_animation():
                 window.update()
                 time.sleep(0.05)
 
+    # Mise à jour du chronomètre
     def update_timer():
         start_time = time.time()
         while True:
             elapsed_time = int(time.time() - start_time)
             minutes = elapsed_time // 60
             seconds = elapsed_time % 60
-            chrono_label.config(text=f"{minutes}:{seconds:02}")
+            chrono_label.configure(text=f"{minutes}:{seconds:02}")
             time.sleep(1)
 
     threading.Thread(target=animate_point, daemon=True).start()
     threading.Thread(target=update_timer, daemon=True).start()
 
+    # Lancement de la fenêtre
     window.mainloop()
 
 ############################################
