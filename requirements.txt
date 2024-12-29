@@ -4,3 +4,4 @@ keyboard
 pyperclip
 requests
 python-dotenv
+Pillow

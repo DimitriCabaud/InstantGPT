@@ -4,11 +4,13 @@ import pyaudio
 import keyboard
 import pyperclip
 import requests
+import base64
 from openai import OpenAI
 from dotenv import load_dotenv
 import tkinter as tk
 import threading
 import time
+from PIL import ImageGrab, Image
 
 load_dotenv()
 ##########################
@@ -141,7 +143,46 @@ def transcribe_audio_with_whisper(filename=OUTPUT_FILENAME):
         return ""
 
 ############################################
-# 4) ENVOYER TEXTE À GPT-4o              #
+# 4) ENVOYER UNE IMAGE À GPT-4o           #
+############################################
+def send_image_to_gpt4o(image_path):
+    """
+    Envoie une image encodée en base64 à GPT-4o.
+    Retourne la réponse générée.
+    """
+    print("=== Envoi de l'image à GPT-4o... ===")
+    try:
+        with open(image_path, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "What is in this image?",
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{base64_image}"},
+                        },
+                    ],
+                }
+            ],
+        )
+        result = response.choices[0].message.content
+        print("=== Réponse de GPT-4o ===")
+        print(result)
+        return result
+    except Exception as e:
+        print(f"Erreur lors de l'envoi de l'image : {e}")
+        return ""
+
+############################################
+# 5) ENVOYER TEXTE À GPT-4o              #
 ############################################
 def send_to_gpt4o(prompt_text):
     """
@@ -166,12 +207,36 @@ def send_to_gpt4o(prompt_text):
         return ""
 
 ############################################
-# 5) CODE PRINCIPAL                        #
+# 6) VÉRIFIER LE CONTENU DU PRESSE-PAPIERS #
+############################################
+def process_clipboard_content():
+    """
+    Vérifie si le presse-papiers contient une image ou du texte,
+    puis traite en conséquence.
+    """
+    try:
+        # Tenter de récupérer une image
+        image = ImageGrab.grabclipboard()
+        if isinstance(image, Image.Image):
+            print("=== Image détectée dans le presse-papiers ===")
+            image_path = "clipboard_image.png"
+            image.save(image_path)  # Sauvegarde temporaire de l'image
+            return send_image_to_gpt4o(image_path)
+        else:
+            # Sinon, traiter comme texte
+            clipboard_content = pyperclip.paste()
+            print(f"=== Texte détecté dans le presse-papiers ===\n{clipboard_content}\n")
+            return clipboard_content
+    except Exception as e:
+        print(f"Erreur lors de la vérification du presse-papiers : {e}")
+        return ""
+
+############################################
+# 7) CODE PRINCIPAL                        #
 ############################################
 if __name__ == "__main__":
-    # 1) Récupération du contenu du presse-papiers (avant l’enregistrement)
-    clipboard_before = pyperclip.paste()
-    print(f"=== Contenu actuel du presse-papiers ===\n{clipboard_before}\n")
+    # 1) Vérification et traitement du contenu du presse-papiers
+    clipboard_content = process_clipboard_content()
 
     # 2) Enregistrer l'audio jusqu'à la pression de la touche Espace
     record_audio_until_space()
@@ -181,7 +246,7 @@ if __name__ == "__main__":
 
     # 4) Préparer le texte à envoyer à GPT-4o:
     combined_prompt = (
-        f"Contenu du presse-papiers:\n{clipboard_before}\n\n"
+        f"Contenu du presse-papiers:\n{clipboard_content}\n\n"
         f"Transcription de l'audio:\n{transcription_text}\n"
     )
 
