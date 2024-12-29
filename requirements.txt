@@ -1,0 +1,6 @@
+openai
+pyaudio
+keyboard
+pyperclip
+requests
+python-dotenv
