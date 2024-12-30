@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import customtkinter as ctk
 import threading
 import time
-from PIL import ImageGrab, Image
+from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
 
 load_dotenv()
 ##########################
@@ -33,42 +33,48 @@ client = OpenAI()
 ############################################
 def show_recording_animation():
     """
-    Affiche une fenêtre visuellement agréable avec un point rouge animé et un chrono pendant l'enregistrement.
+    Affiche une fenêtre visuellement agréable avec un gif animé et un chrono pendant l'enregistrement.
     """
     # Initialiser la fenêtre
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
     window = ctk.CTk()
     window.title("Enregistrement en cours")
-    window.geometry("400x200")
+    window.geometry("400x250")
 
     # Titre principal
-    title_label = ctk.CTkLabel(window, text="🔴 Enregistrement...", font=("Helvetica", 18, "bold"))
+    title_label = ctk.CTkLabel(window, text="Enregistrement en cours...", font=("Helvetica", 18, "bold"))
     title_label.pack(pady=10)
 
-    # Cadre pour l'animation
-    animation_frame = ctk.CTkFrame(window, width=80, height=80, corner_radius=10)
+    # Gif animé
+    animation_frame = ctk.CTkFrame(window, width=200, height=200, corner_radius=10)
     animation_frame.pack(pady=10)
 
-    canvas = ctk.CTkCanvas(animation_frame, width=50, height=50, bg="#1A1A1A", highlightthickness=0)
-    canvas.pack()
-    point = canvas.create_oval(10, 10, 40, 40, fill="red")
+    gif_path = "recording.gif"  # Chemin du gif animé
+    try:
+        gif_image = Image.open(gif_path)
+        frames = []
+        for i in range(gif_image.n_frames):
+            gif_image.seek(i)
+            frame = ImageTk.PhotoImage(gif_image.copy())
+            frames.append(frame)
+    except (FileNotFoundError, UnidentifiedImageError):
+        print(f"Erreur : Le fichier GIF '{gif_path}' est introuvable ou invalide.")
+        return
+
+    gif_label = ctk.CTkLabel(animation_frame, image=frames[0], text="")  # Supprimer le texte
+    gif_label.pack()
+
+    def animate_gif():
+        while True:
+            for frame in frames:
+                gif_label.configure(image=frame)
+                window.update()
+                time.sleep(0.1)
 
     # Chronomètre
     chrono_label = ctk.CTkLabel(window, text="0:00", font=("Helvetica", 16))
     chrono_label.pack(pady=10)
-
-    # Animation du point rouge
-    def animate_point():
-        while True:
-            for i in range(5):
-                canvas.move(point, 0, 2)
-                window.update()
-                time.sleep(0.05)
-            for i in range(5):
-                canvas.move(point, 0, -2)
-                window.update()
-                time.sleep(0.05)
 
     # Mise à jour du chronomètre
     def update_timer():
@@ -80,7 +86,7 @@ def show_recording_animation():
             chrono_label.configure(text=f"{minutes}:{seconds:02}")
             time.sleep(1)
 
-    threading.Thread(target=animate_point, daemon=True).start()
+    threading.Thread(target=animate_gif, daemon=True).start()
     threading.Thread(target=update_timer, daemon=True).start()
 
     # Lancement de la fenêtre
