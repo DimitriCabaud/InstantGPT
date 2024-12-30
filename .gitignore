@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 *.log
 .DS_Store
+clipboard_image.png
+output.wav
+dist/
