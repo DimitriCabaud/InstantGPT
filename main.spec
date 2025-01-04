@@ -2,13 +2,15 @@
 binaries = [
     ('venv/Lib/site-packages/pyaudio/_portaudio.cp313-win_amd64.pyd', '.'),  # Inclure la bibliothèque dans le binaire
 ]
-
+datas = [
+    ('recording.gif', '.'),  # Inclure le fichier recording.gif dans le binaire
+]
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=binaries,
-    datas=[],
+    datas=datas,
     hiddenimports=['pyaudio'],
     hookspath=[],
     hooksconfig={},
@@ -17,6 +19,7 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -32,7 +35,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

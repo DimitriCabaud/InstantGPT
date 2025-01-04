@@ -1,4 +1,5 @@
 import os
+import sys
 import wave
 import pyaudio
 import keyboard
@@ -10,11 +11,17 @@ from dotenv import load_dotenv
 import customtkinter as ctk
 import threading
 import time
-from PIL import ImageGrab, Image, UnidentifiedImageError
+from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
+
+# Manage the path for the GIF file
+if hasattr(sys, '_MEIPASS'):
+    gif_path = os.path.join(sys._MEIPASS, 'recording.gif')
+else:
+    gif_path = os.path.join(os.path.dirname(__file__), 'recording.gif')
 
 load_dotenv()
 ##########################
-#     PARAMÈTRES AUDIO   #
+#     AUDIO SETTINGS     #
 ##########################
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -23,81 +30,129 @@ RATE = 44100
 OUTPUT_FILENAME = "output.wav"
 
 ##########################
-#   CLÉ API OPENAI       #
+#    OPENAI API KEY      #
 ##########################
-# Soit dans la variable d'environnement :
+# Either in the environment variable:
 client = OpenAI()
 
 ############################################
-# 1) ANIMATION PENDANT L'ENREGISTREMENT   #
+# 1) MAIN WINDOW                          #
 ############################################
-def show_recording_animation():
-    """
-    Affiche une fenêtre visuellement agréable avec un gif animé et un chrono pendant l'enregistrement.
-    """
-    # Initialiser la fenêtre
-    ctk.set_appearance_mode("dark")
-    ctk.set_default_color_theme("blue")
-    window = ctk.CTk()
-    window.title("Enregistrement en cours")
-    window.geometry("400x250")
+class MainApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Mouse GPT")
+        self.geometry("600x700")
 
-    # Titre principal
-    title_label = ctk.CTkLabel(window, text="Enregistrement en cours...", font=("Helvetica", 18, "bold"))
-    title_label.pack(pady=10)
+        # Initialize the animation window
+        self.init_recording_screen()
 
-    # Gif animé
-    animation_frame = ctk.CTkFrame(window, width=200, height=200, corner_radius=10)
-    animation_frame.pack(pady=10)
+    def init_recording_screen(self):
+        # Clear old widgets
+        for widget in self.winfo_children():
+            widget.destroy()
 
-    gif_path = "recording.gif"  # Chemin du gif animé
-    try:
-        gif_image = Image.open(gif_path)
-        frames = []
-        for i in range(gif_image.n_frames):
-            gif_image.seek(i)
-            frame = ctk.CTkImage(light_image=gif_image.copy(), size=(200, 200))
-            frames.append(frame)
-    except (FileNotFoundError, UnidentifiedImageError):
-        print(f"Erreur : Le fichier GIF '{gif_path}' est introuvable ou invalide.")
-        return
+        # Main title
+        self.recording_label = ctk.CTkLabel(self, text="Recording in progress...", font=("Helvetica", 20, "bold"))
+        self.recording_label.pack(pady=10)
 
-    gif_label = ctk.CTkLabel(animation_frame, image=frames[0], text="")  # Supprimer le texte
-    gif_label.pack()
+        # Timer
+        self.chrono_label = ctk.CTkLabel(self, text="0:00", font=("Helvetica", 16))
+        self.chrono_label.pack(pady=5)
 
-    def animate_gif():
-        while True:
-            for frame in frames:
-                gif_label.configure(image=frame)
-                window.update()
-                time.sleep(0.1)
+        # GIF Animation
+        self.gif_label = ctk.CTkLabel(self, text="")
+        self.gif_label.pack(pady=10)
+        self.is_animating = True
+        self.start_gif_animation()
 
-    # Chronomètre
-    chrono_label = ctk.CTkLabel(window, text="0:00", font=("Helvetica", 16))
-    chrono_label.pack(pady=10)
+    def start_gif_animation(self):
+        try:
+            gif_image = Image.open(gif_path)
+            self.frames = []
+            for frame_index in range(gif_image.n_frames):
+                gif_image.seek(frame_index)
+                frame = ctk.CTkImage(light_image=gif_image.copy(), size=(200, 200))
+                self.frames.append(frame)
 
-    # Mise à jour du chronomètre
-    def update_timer():
+            self.current_frame = 0
+
+            def update_frame():
+                if self.is_animating and self.gif_label.winfo_exists():
+                    self.gif_label.configure(image=self.frames[self.current_frame])
+                    self.current_frame = (self.current_frame + 1) % len(self.frames)
+                    self.after(100, update_frame)
+
+            update_frame()
+        except (FileNotFoundError, UnidentifiedImageError):
+            self.recording_label.configure(text="Error: The GIF file is missing or invalid.")
+
+    def start_timer(self):
         start_time = time.time()
-        while True:
-            elapsed_time = int(time.time() - start_time)
-            minutes = elapsed_time // 60
-            seconds = elapsed_time % 60
-            chrono_label.configure(text=f"{minutes}:{seconds:02}")
-            time.sleep(1)
 
-    threading.Thread(target=animate_gif, daemon=True).start()
-    threading.Thread(target=update_timer, daemon=True).start()
+        def update_timer():
+            if self.chrono_label.winfo_exists():
+                elapsed_time = int(time.time() - start_time)
+                minutes = elapsed_time // 60
+                seconds = elapsed_time % 60
+                self.chrono_label.configure(text=f"{minutes}:{seconds:02}")
+                self.after(1000, update_timer)
 
-    # Lancement de la fenêtre
-    window.mainloop()
+        update_timer()
+
+    def show_result_screen(self, clipboard_content, transcription_text, gpt_response, image_path=None):
+        # Stop animation
+        self.is_animating = False
+
+        # Clear old widgets
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        # Containers for sections
+        self.clipboard_label = ctk.CTkLabel(self, text="Clipboard Content", font=("Helvetica", 16, "bold"))
+        self.clipboard_label.pack(pady=5)
+
+        if image_path:
+            # Display the image if detected
+            try:
+                clipboard_image = Image.open(image_path)
+                clipboard_image.thumbnail((400, 400))  # Resize the image
+                clipboard_photo = ImageTk.PhotoImage(clipboard_image)
+
+                self.clipboard_image_label = ctk.CTkLabel(self, image=clipboard_photo, text="")
+                self.clipboard_image_label.image = clipboard_photo  # Prevent garbage collection
+                self.clipboard_image_label.pack(pady=5)
+            except Exception as e:
+                self.clipboard_text = ctk.CTkTextbox(self, width=580, height=150)
+                self.clipboard_text.insert(ctk.END, f"Error displaying image: {e}")
+                self.clipboard_text.pack(pady=5)
+        else:
+            self.clipboard_text = ctk.CTkTextbox(self, width=580, height=150)
+            self.clipboard_text.insert(ctk.END, clipboard_content)
+            self.clipboard_text.pack(pady=5)
+
+        self.transcript_label = ctk.CTkLabel(self, text="Transcript", font=("Helvetica", 16, "bold"))
+        self.transcript_text = ctk.CTkTextbox(self, width=580, height=150)
+
+        self.response_label = ctk.CTkLabel(self, text="ChatGPT Response", font=("Helvetica", 16, "bold"))
+        self.response_text = ctk.CTkTextbox(self, width=580, height=200)
+
+        # Place sections
+        self.transcript_label.pack(pady=5)
+        self.transcript_text.pack(pady=5)
+        self.response_label.pack(pady=5)
+        self.response_text.pack(pady=5)
+
+        # Fill text areas
+        self.transcript_text.insert(ctk.END, transcription_text)
+        self.response_text.insert(ctk.END, gpt_response)
 
 ############################################
-# 2) ENREGISTRER L'AUDIO JUSQU'À ESPACE    #
+# 2) RECORD AUDIO UNTIL SPACE IS PRESSED  #
 ############################################
 def record_audio_until_space(output_filename=OUTPUT_FILENAME):
     """
-    Enregistre l'audio jusqu'à ce que l'utilisateur appuie sur ESPACE.
+    Record audio until the user presses SPACE.
     """
     audio = pyaudio.PyAudio()
     stream = audio.open(format=FORMAT, 
@@ -106,19 +161,12 @@ def record_audio_until_space(output_filename=OUTPUT_FILENAME):
                         input=True,
                         frames_per_buffer=CHUNK)
 
-    print("=== Enregistrement en cours. Appuyez sur ESPACE pour arrêter. ===")
     frames = []
-
-    # Lancer l'animation dans un thread séparé
-    animation_thread = threading.Thread(target=show_recording_animation, daemon=True)
-    animation_thread.start()
-
     while True:
         data = stream.read(CHUNK)
         frames.append(data)
         
         if keyboard.is_pressed('space'):
-            print("=== Espace détecté. Arrêt de l'enregistrement. ===")
             break
 
     stream.stop_stream()
@@ -132,52 +180,44 @@ def record_audio_until_space(output_filename=OUTPUT_FILENAME):
         wf.writeframes(b''.join(frames))
 
 ############################################
-# 3) TRANSCRIRE L'AUDIO (NOUVELLE API)     #
+# 3) TRANSCRIBE AUDIO (NEW API)           #
 ############################################
 def transcribe_audio_with_whisper(filename=OUTPUT_FILENAME):
     """
-    Utilise l'API Whisper d'OpenAI pour transcrire le fichier audio.
-    Retourne la transcription sous forme de texte.
+    Use OpenAI's Whisper API to transcribe the audio file.
+    Returns the transcription as text.
     """
-    print("=== Transcription de l'audio via Whisper... ===")
-
     try:
         with open(filename, "rb") as audio_file:
-            # Utilisation de la méthode correcte
             response = client.audio.transcriptions.create(
                 file=audio_file,
                 model="whisper-1"
             )
-        text = response.text
-        print("=== Transcription obtenue ===")
-        print(text)
-        return text
+        return response.text
     except Exception as e:
-        print(f"Erreur lors de la transcription : {e}")
-        return ""
+        return f"Error during transcription: {e}"
 
 ############################################
-# 4) ENVOYER UNE IMAGE À GPT-4o           #
+# 4) SEND AN IMAGE TO GPT-4o              #
 ############################################
-def send_image_to_gpt4o(image_path):
+def send_image_to_gpt4o_with_transcript(image_path, transcript):
     """
-    Envoie une image encodée en base64 à GPT-4o.
-    Retourne la réponse générée.
+    Send a base64-encoded image along with the transcribed text to GPT-4o.
+    Returns the generated response.
     """
-    print("=== Envoi de l'image à GPT-4o... ===")
     try:
         with open(image_path, "rb") as image_file:
             base64_image = base64.b64encode(image_file.read()).decode("utf-8")
         
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": "What is in this image?",
+                            "text": transcript,
                         },
                         {
                             "type": "image_url",
@@ -187,86 +227,83 @@ def send_image_to_gpt4o(image_path):
                 }
             ],
         )
-        result = response.choices[0].message.content
-        print("=== Réponse de GPT-4o ===")
-        print(result)
-        return result
+        return response.choices[0].message.content
     except Exception as e:
-        print(f"Erreur lors de l'envoi de l'image : {e}")
-        return ""
+        return f"Error sending image: {e}"
 
 ############################################
-# 5) ENVOYER TEXTE À GPT-4o              #
+# 5) SEND TEXT TO GPT-4o                  #
 ############################################
 def send_to_gpt4o(prompt_text):
     """
-    Envoie le 'prompt_text' à GPT-4o.
-    Retourne le texte de la réponse.
+    Send the given text to GPT-4o and return the response.
     """
-    print("=== Envoi à ChatGPT (GPT-4o) ... ===")
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",  # Utilisation de GPT-4o
+            model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Tu es un assistant qui répond en français."},
+                {"role": "system", "content": "You are an assistant helping a user with their tasks."},
                 {"role": "user", "content": prompt_text}
             ]
         )
-        answer = response.choices[0].message.content
-        print("=== Réponse de ChatGPT ===")
-        print(answer)
-        return answer
+        return response.choices[0].message.content
     except Exception as e:
-        print(f"Erreur lors de l'appel à l'API ChatGPT: {e}")
-        return ""
+        return f"Error calling GPT-4o: {e}"
 
 ############################################
-# 6) VÉRIFIER LE CONTENU DU PRESSE-PAPIERS #
+# 6) CHECK CLIPBOARD CONTENT              #
 ############################################
 def process_clipboard_content():
     """
-    Vérifie si le presse-papiers contient une image ou du texte,
-    puis traite en conséquence.
+    Check if the clipboard contains an image or text,
+    then process accordingly.
     """
     try:
-        # Tenter de récupérer une image
         image = ImageGrab.grabclipboard()
         if isinstance(image, Image.Image):
-            print("=== Image détectée dans le presse-papiers ===")
             image_path = "clipboard_image.png"
-            image.save(image_path)  # Sauvegarde temporaire de l'image
-            return send_image_to_gpt4o(image_path)
+            image.save(image_path)
+            return image_path, None
         else:
-            # Sinon, traiter comme texte
             clipboard_content = pyperclip.paste()
-            print(f"=== Texte détecté dans le presse-papiers ===\n{clipboard_content}\n")
-            return clipboard_content
+            return None, clipboard_content or "[No content]"
     except Exception as e:
-        print(f"Erreur lors de la vérification du presse-papiers : {e}")
-        return ""
+        return None, f"Error: {e}"
 
 ############################################
-# 7) CODE PRINCIPAL                        #
+# 7) MAIN CODE                            #
 ############################################
 if __name__ == "__main__":
-    # 1) Vérification et traitement du contenu du presse-papiers
-    clipboard_content = process_clipboard_content()
+    # Prevent terminal window when compiling with PyInstaller
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
 
-    # 2) Enregistrer l'audio jusqu'à la pression de la touche Espace
-    record_audio_until_space()
+    app = MainApp()
 
-    # 3) Transcrire le fichier audio via la nouvelle approche
-    transcription_text = transcribe_audio_with_whisper(OUTPUT_FILENAME)
+    def run_main_operations():
+        app.start_timer()
 
-    # 4) Préparer le texte à envoyer à GPT-4o:
-    combined_prompt = (
-        f"Contenu du presse-papiers:\n{clipboard_content}\n\n"
-        f"Transcription de l'audio:\n{transcription_text}\n"
-    )
+        # 1) Check and process clipboard content
+        image_path, clipboard_content = process_clipboard_content()
 
-    # 5) Envoyer à GPT-4o et récupérer la réponse
-    gpt4_response = send_to_gpt4o(combined_prompt)
+        # 2) Record audio until SPACE is pressed
+        record_audio_until_space()
 
-    # 6) Copier la réponse de GPT-4o dans le presse-papiers
-    pyperclip.copy(gpt4_response)
-    print("=== La réponse de ChatGPT a été copiée dans le presse-papiers. ===")
+        # 3) Transcribe the audio file using the new approach
+        transcription_text = transcribe_audio_with_whisper(OUTPUT_FILENAME)
+
+        # 4) Prepare and send data to GPT-4o
+        if image_path:
+            gpt_response = send_image_to_gpt4o_with_transcript(image_path, transcription_text)
+        else:
+            combined_prompt = (
+                f"Clipboard content:\n{clipboard_content}\n\n"
+                f"Audio transcription:\n{transcription_text}\n"
+            )
+            gpt_response = send_to_gpt4o(combined_prompt)
+
+        # Display the results on the final screen
+        app.show_result_screen(clipboard_content, transcription_text, gpt_response, image_path=image_path)
+
+    threading.Thread(target=run_main_operations, daemon=True).start()
+    app.mainloop()
