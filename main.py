@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import customtkinter as ctk
 import threading
 import time
-from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
+from PIL import ImageGrab, Image, UnidentifiedImageError
 
 load_dotenv()
 ##########################
@@ -56,7 +56,7 @@ def show_recording_animation():
         frames = []
         for i in range(gif_image.n_frames):
             gif_image.seek(i)
-            frame = ImageTk.PhotoImage(gif_image.copy())
+            frame = ctk.CTkImage(light_image=gif_image.copy(), size=(200, 200))
             frames.append(frame)
     except (FileNotFoundError, UnidentifiedImageError):
         print(f"Erreur : Le fichier GIF '{gif_path}' est introuvable ou invalide.")
