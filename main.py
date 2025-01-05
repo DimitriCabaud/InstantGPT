@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 import customtkinter as ctk
 import threading
 import time
-from PIL import ImageGrab, Image, UnidentifiedImageError
+from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
+
 
 # Manage the path for the GIF file
 if hasattr(sys, '_MEIPASS'):
@@ -41,7 +42,7 @@ client = OpenAI()
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Mouse GPT")
+        self.title("MouseGPT")
         self.geometry("600x700")
 
         # Initialize the animation window
@@ -66,6 +67,11 @@ class MainApp(ctk.CTk):
         self.is_animating = True
         self.start_gif_animation()
 
+        # Blinking text for stopping recording
+        self.stop_recording_label = ctk.CTkLabel(self, text="Press SPACE to stop recording", font=("Helvetica", 14))
+        self.stop_recording_label.pack(pady=10)
+        self.start_blinking_text()
+
     def start_gif_animation(self):
         try:
             gif_image = Image.open(gif_path)
@@ -86,6 +92,16 @@ class MainApp(ctk.CTk):
             update_frame()
         except (FileNotFoundError, UnidentifiedImageError):
             self.recording_label.configure(text="Error: The GIF file is missing or invalid.")
+
+    def start_blinking_text(self):
+        def toggle_visibility():
+            if self.stop_recording_label.winfo_exists():
+                current_color = self.stop_recording_label.cget("text_color")
+                new_color = "white" if current_color == "red" else "red"
+                self.stop_recording_label.configure(text_color=new_color)
+                self.after(500, toggle_visibility)
+
+        toggle_visibility()
 
     def start_timer(self):
         start_time = time.time()
@@ -274,9 +290,6 @@ def process_clipboard_content():
 # 7) MAIN CODE                            #
 ############################################
 if __name__ == "__main__":
-    # Prevent terminal window when compiling with PyInstaller
-    sys.stdout = open(os.devnull, 'w')
-    sys.stderr = open(os.devnull, 'w')
 
     app = MainApp()
 
