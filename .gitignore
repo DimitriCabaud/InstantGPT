@@ -9,3 +9,4 @@ __pycache__/
 clipboard_image.png
 output.wav
 dist/
+build/
