@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import customtkinter as ctk
 import threading
 import time
-from PIL import ImageGrab, Image, ImageTk, UnidentifiedImageError
+from PIL import ImageGrab, Image, UnidentifiedImageError
 
 # Manage the path for the GIF file
 if hasattr(sys, '_MEIPASS'):
