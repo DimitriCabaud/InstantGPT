@@ -1,6 +1,6 @@
-# Mouse GPT
+# MouseGPT
 
-Mouse GPT is an interactive application designed to provide direct access to ChatGPT from your mouse or a keyboard shortcut. The goal is to enable rapid interactions with ChatGPT, far faster than the web application or even the ChatGPT Desktop app. By using a shortcut or a click, users can record audio, access clipboard content, process the audio for transcription, and send the transcript along with clipboard content (text or image) to ChatGPT for contextual analysis. This application is built using Python and CustomTkinter (CTk) for the graphical user interface.
+MouseGPT is an interactive application designed to provide direct access to ChatGPT from your mouse or a keyboard shortcut. The goal is to enable rapid interactions with ChatGPT, far faster than the web application or even the ChatGPT Desktop app. By using a shortcut or a click, users can record audio, access clipboard content, process the audio for transcription, and send the transcript along with clipboard content (text or image) to ChatGPT for contextual analysis. This application is built using Python and CustomTkinter (CTk) for the graphical user interface.
 
 ## Features
 
@@ -10,7 +10,6 @@ Mouse GPT is an interactive application designed to provide direct access to Cha
 - **Audio Transcription**: Utilizes OpenAI's Whisper API to transcribe recorded audio into text.
 - **Image and Text Analysis**: Sends images and transcriptions to OpenAI's GPT-4o API for analysis.
 - **Interactive GUI**: User-friendly interface for displaying results, including clipboard content, transcription, and GPT responses.
-- **GIF Animation**: Visual feedback during recording using a GIF animation.
 - **Productivity Enhancement**: Aims to save time and streamline workflows by offering faster interactions with ChatGPT.
 
 ## Installation
@@ -63,7 +62,7 @@ Mouse GPT is an interactive application designed to provide direct access to Cha
 To launch the application, execute:
 
 ```bash
-python mouse_gpt.py
+python main.py
 ```
 
 ### Functionality Overview
