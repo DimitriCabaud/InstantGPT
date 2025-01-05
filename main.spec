@@ -3,7 +3,7 @@ binaries = [
     ('venv/Lib/site-packages/pyaudio/_portaudio.cp313-win_amd64.pyd', '.'),  # Inclure la bibliothèque dans le binaire
 ]
 datas = [
-    ('recording.gif', '.'),  # Inclure le fichier recording.gif dans le binaire
+    ('assets/recording.gif', '.'),  # Inclure le fichier recording.gif dans le binaire
 ]
 
 a = Analysis(
