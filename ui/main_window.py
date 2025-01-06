@@ -11,7 +11,7 @@ from PIL import Image, ImageTk, UnidentifiedImageError
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("MouseGPT")
+        self.title("InstantGPT")
         self.geometry("600x700")
 
         if hasattr(sys, '_MEIPASS'):

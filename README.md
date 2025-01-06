@@ -1,6 +1,6 @@
-# MouseGPT
+# InstantGPT
 
-MouseGPT is an interactive application designed to provide direct access to ChatGPT from your mouse or a keyboard shortcut. The goal is to enable rapid interactions with ChatGPT, far faster than the web application or even the ChatGPT Desktop app. By using a shortcut or a click, users can record audio, access clipboard content, process the audio for transcription, and send the transcript along with clipboard content (text or image) to ChatGPT for contextual analysis. This application is built using Python and CustomTkinter (CTk) for the graphical user interface.
+InstantGPT is an interactive application designed to provide direct access to ChatGPT from your mouse or a keyboard shortcut. The goal is to enable rapid interactions with ChatGPT, far faster than the web application or even the ChatGPT Desktop app. By using a shortcut or a click, users can record audio, access clipboard content, process the audio for transcription, and send the transcript along with clipboard content (text or image) to ChatGPT for contextual analysis. This application is built using Python and CustomTkinter (CTk) for the graphical user interface.
 
 ## Features
 
