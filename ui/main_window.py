@@ -22,13 +22,20 @@ class MainApp(ctk.CTk):
         # Initialize the animation window
         self.init_recording_screen()
 
+    def update_log(self, log_message):
+        """
+        Update the log label dynamically.
+        """
+        self.recording_label.configure(text=log_message)
+        self.update_idletasks()  # Force immediate UI refresh
+
+
     def init_recording_screen(self):
-        # Clear old widgets
         for widget in self.winfo_children():
             widget.destroy()
 
-        # Main title
-        self.recording_label = ctk.CTkLabel(self, text="Recording in progress...", font=("Helvetica", 20, "bold"))
+        # Log area (will update dynamically)
+        self.recording_label = ctk.CTkLabel(self, text="", font=("Helvetica", 16, "bold"), wraplength=500)
         self.recording_label.pack(pady=10)
 
         # Timer
@@ -71,14 +78,14 @@ class MainApp(ctk.CTk):
         def toggle_visibility():
             if self.stop_recording_label.winfo_exists():
                 current_color = self.stop_recording_label.cget("text_color")
-                new_color = "white" if current_color == "red" else "red"
+                new_color = "black" if current_color == "red" else "red"
                 self.stop_recording_label.configure(text_color=new_color)
-                self.after(500, toggle_visibility)
-    
+                self.after(500, toggle_visibility)    
         toggle_visibility()
 
     
     def start_timer(self):
+        self.start_time = time.time() 
         start_time = time.time()
 
         def update_timer():
@@ -90,6 +97,7 @@ class MainApp(ctk.CTk):
                 self.after(1000, update_timer)
 
         update_timer()
+
 
     def show_clipboard_prompt(self, clipboard_content, transcription_text, image_path):
         # Clear old widgets

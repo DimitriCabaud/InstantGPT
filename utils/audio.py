@@ -22,9 +22,6 @@ RATE = 44100
 OUTPUT_FILENAME = "output.wav"
 
 def record_audio_until_space(output_filename=OUTPUT_FILENAME):
-    """
-    Record audio until the user presses SPACE.
-    """
     audio = pyaudio.PyAudio()
     stream = audio.open(format=FORMAT, 
                         channels=CHANNELS,
@@ -49,6 +46,7 @@ def record_audio_until_space(output_filename=OUTPUT_FILENAME):
         wf.setsampwidth(audio.get_sample_size(FORMAT))
         wf.setframerate(RATE)
         wf.writeframes(b''.join(frames))
+
 
 
 def transcribe_audio_with_whisper(filename=OUTPUT_FILENAME):
