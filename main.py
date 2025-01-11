@@ -1,7 +1,7 @@
 import time
 from ui.main_window import MainApp  # Import de la classe principale
 from utils.clipboard import process_clipboard_content  # Import des fonctions utilitaires
-from utils.audio import record_audio_until_space, transcribe_audio_with_whisper, OUTPUT_FILENAME
+from utils.audio import record_audio_until_space, split_audio_with_wave, transcribe_audio_with_whisper, OUTPUT_FILENAME
 from utils.gpt_client import send_image_to_gpt4o_with_transcript, send_to_gpt4o
 
 import threading
@@ -25,6 +25,7 @@ if __name__ == "__main__":
         # Step 3: Check clipboard content
         app.update_log("Checking clipboard content...")
         image_path, clipboard_content = process_clipboard_content()
+
         if image_path:
             app.update_log("Clipboard contains an image.")
         elif clipboard_content:
@@ -32,16 +33,26 @@ if __name__ == "__main__":
         else:
             app.update_log("Clipboard is empty or invalid.")
 
-        # Step 4: Transcribe the audio
-        app.update_log("Transcribing audio...")
-        transcription_text = transcribe_audio_with_whisper(OUTPUT_FILENAME)
-        if "Error" in transcription_text:
-            app.update_log(f"Error during transcription: {transcription_text}")
-        else:
-            app.update_log("Transcription completed.")
+        # Step 4: Split and Transcribe the audio
+        app.update_log("Splitting audio into chunks if necessary...")
+        chunks = split_audio_with_wave(OUTPUT_FILENAME)
+        app.update_log(f"Audio split into {len(chunks)} chunks.")
+
+        full_transcription = []
+        for chunk in chunks:
+            app.update_log(f"Transcribing {chunk}...")
+            transcription_text = transcribe_audio_with_whisper(chunk)
+            if "Error" in transcription_text:
+                app.update_log(f"Error during transcription of {chunk}: {transcription_text}")
+            else:
+                app.update_log(f"Transcription for {chunk} completed.")
+                full_transcription.append(transcription_text)
+
+        combined_transcription = "\n".join(full_transcription)
 
         # Step 5: Display clipboard inclusion options
-        app.show_clipboard_prompt(clipboard_content, transcription_text, image_path=image_path)
+        app.show_clipboard_prompt(clipboard_content, combined_transcription, image_path=image_path)
+
 
     threading.Thread(target=run_main_operations, daemon=True).start()
     app.mainloop()

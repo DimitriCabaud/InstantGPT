@@ -1,8 +1,10 @@
 openai
 pyaudio
-keyboard
 pyperclip
 requests
 python-dotenv
 Pillow
 customtkinter
+pynput
+pydub
+
