@@ -45,23 +45,24 @@ def send_image_to_gpt4o_with_transcript(image_path, transcript):
         return f"Error sending image: {e}"
 
 
-def send_to_gpt4o(prompt_text):
+def send_to_llm(prompt_text):
     """
-    Send the given text to GPT-4o and return the response.
+    Send the given text to OpenAI and return the response.
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="o1-preview",
             messages=[
-                {"role": "system", "content": "You are an assistant helping a user with their tasks. Always respond in the language of the user unless otherwise specified."},
+                #{"role": "system", "content": "You are an assistant helping a user with their tasks. Always respond in the language of the user unless otherwise specified."},
                 {"role": "user", "content": prompt_text}
             ],
-            temperature=0.7,  # Adjust creativity
-            max_tokens=16384,   # Limit the response length
+            #temperature=0.7,  # Adjust creativity
+            #max_tokens=16384,   # Limit the response length
             top_p=1.0,        # Typical value for full probability
             frequency_penalty=0.0,
-            presence_penalty=0.0
+            presence_penalty=0.0,
+            #reasoning_effort="high"
         )
         return response.choices[0].message.content
     except Exception as e:
-        return f"Error calling GPT-4o: {e}"
+        return f"Error calling LLM: {e}"

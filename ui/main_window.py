@@ -3,7 +3,7 @@ import os
 import time
 import customtkinter as ctk
 from utils.audio import record_audio_until_space, transcribe_audio_with_whisper
-from utils.gpt_client import send_to_gpt4o, send_image_to_gpt4o_with_transcript
+from utils.gpt_client import send_to_llm, send_image_to_gpt4o_with_transcript
 from utils.clipboard import process_clipboard_content
 from PIL import Image, ImageTk, UnidentifiedImageError
 
@@ -125,12 +125,12 @@ class MainApp(ctk.CTk):
                     f"Clipboard content:\n{clipboard_content}\n\n"
                     f"Audio transcription:\n{transcription_text_with_context}\n"
                 )
-                gpt_response = send_to_gpt4o(combined_prompt)
+                gpt_response = send_to_llm(combined_prompt)
         else:
             combined_prompt = (
                 f"Audio transcription:\n{transcription_text_with_context}\n"
             )
-            gpt_response = send_to_gpt4o(combined_prompt)
+            gpt_response = send_to_llm(combined_prompt)
 
         # Show results
         self.show_result_screen(include_clipboard, clipboard_content, transcription_text, gpt_response, image_path)

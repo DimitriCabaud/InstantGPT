@@ -2,7 +2,7 @@ import time
 from ui.main_window import MainApp  # Import de la classe principale
 from utils.clipboard import process_clipboard_content  # Import des fonctions utilitaires
 from utils.audio import record_audio_until_space, split_audio_with_wave, transcribe_audio_with_whisper, OUTPUT_FILENAME
-from utils.gpt_client import send_image_to_gpt4o_with_transcript, send_to_gpt4o
+from utils.gpt_client import send_image_to_gpt4o_with_transcript, send_to_llm
 
 import threading
 
