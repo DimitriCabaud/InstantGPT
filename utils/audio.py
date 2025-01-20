@@ -77,7 +77,7 @@ def transcribe_audio_with_whisper(filename=OUTPUT_FILENAME):
     except Exception as e:
         return f"Error during transcription: {e}"
 
-def split_audio_with_wave(file_path, max_size_mb=25):
+def split_audio_with_wave(file_path, max_size_mb=24):
     """
     Split a WAV audio file into smaller chunks under the max_size_mb size using the wave module.
 
@@ -87,7 +87,7 @@ def split_audio_with_wave(file_path, max_size_mb=25):
     Returns:
         list: List of paths to the smaller audio chunks.
     """
-    max_size_bytes = max_size_mb * 1024 * 1024
+    max_size_bytes = max_size_mb * 1024 * 1024  # Convert max size to bytes
 
     with wave.open(file_path, 'rb') as wav_file:
         params = wav_file.getparams()
@@ -98,8 +98,8 @@ def split_audio_with_wave(file_path, max_size_mb=25):
         # Calculate bytes per second
         bytes_per_second = frame_rate * frame_width * n_channels
 
-        # Determine max frames per chunk
-        max_frames = max_size_bytes // frame_width
+        # Determine the max number of frames per chunk
+        max_frames = max_size_bytes // (frame_width * n_channels)
 
         chunk_paths = []
         chunk_index = 0
@@ -109,8 +109,9 @@ def split_audio_with_wave(file_path, max_size_mb=25):
             with wave.open(chunk_path, 'wb') as chunk_file:
                 chunk_file.setparams(params)
 
-                # Write up to max_frames to the chunk
-                frames = wav_file.readframes(max_frames)
+                # Write frames for the current chunk
+                frames_to_write = min(max_frames, wav_file.getnframes() - wav_file.tell())
+                frames = wav_file.readframes(frames_to_write)
                 chunk_file.writeframes(frames)
 
             chunk_paths.append(chunk_path)

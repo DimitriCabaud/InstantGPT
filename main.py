@@ -38,6 +38,7 @@ if __name__ == "__main__":
         chunks = split_audio_with_wave(OUTPUT_FILENAME)
         app.update_log(f"Audio split into {len(chunks)} chunks.")
 
+        # Initialize the full transcription variable
         full_transcription = []
         for chunk in chunks:
             app.update_log(f"Transcribing {chunk}...")
@@ -45,12 +46,18 @@ if __name__ == "__main__":
             if "Error" in transcription_text:
                 app.update_log(f"Error during transcription of {chunk}: {transcription_text}")
             else:
-                app.update_log(f"Transcription for {chunk} completed.")
+                app.update_log(f"Transcription for {chunk} completed and added to full transcription.")
                 full_transcription.append(transcription_text)
 
         combined_transcription = "\n".join(full_transcription)
 
+        # Ensure the combined transcription is passed correctly to the interface
+        if combined_transcription:
+            app.update_log("Combined transcription ready for display.")
+        else:
+            app.update_log("No transcription available to display.")
         # Step 5: Display clipboard inclusion options
+        app.update_log("Displaying transcription and clipboard content...")
         app.show_clipboard_prompt(clipboard_content, combined_transcription, image_path=image_path)
 
 
