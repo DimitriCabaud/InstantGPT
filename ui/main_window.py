@@ -14,6 +14,14 @@ class MainApp(ctk.CTk):
         self.title("InstantGPT")
         self.geometry("600x700")
 
+        # Set application icon
+        if hasattr(sys, '_MEIPASS'):
+            self.icon_path = os.path.join(sys._MEIPASS, 'assets', 'flash.ico')
+        else:
+            self.icon_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'flash.ico')
+
+        self.iconbitmap(self.icon_path)
+
         if hasattr(sys, '_MEIPASS'):
             self.gif_path = os.path.join(sys._MEIPASS, 'assets', 'recording.gif')
         else:
@@ -106,13 +114,19 @@ class MainApp(ctk.CTk):
 
         # Prompt user for clipboard inclusion
         self.prompt_label = ctk.CTkLabel(self, text="Do you want to include clipboard content in the request?", font=("Helvetica", 16, "bold"))
-        self.prompt_label.pack(pady=10)
+        self.prompt_label.pack(pady=(50, 20))  # Ajustez le premier paramètre pour le centrer correctement
 
-        self.yes_button = ctk.CTkButton(self, text="Yes", command=lambda: self.process_request(True, clipboard_content, transcription_text, image_path))
-        self.yes_button.pack(side="left", padx=20, pady=20)
+        # Frame to hold buttons
+        button_frame = ctk.CTkFrame(self, fg_color=self.cget("fg_color"))  # Applique la couleur de fond pour harmoniser
+        button_frame.pack(pady=(20, 0))  # Descend le frame légèrement plus bas
 
-        self.no_button = ctk.CTkButton(self, text="No", command=lambda: self.process_request(False, clipboard_content, transcription_text, image_path))
-        self.no_button.pack(side="right", padx=20, pady=20)
+        self.yes_button = ctk.CTkButton(button_frame, text="Yes", command=lambda: self.process_request(True, clipboard_content, transcription_text, image_path))
+        self.yes_button.pack(side="left", padx=10)
+
+        self.no_button = ctk.CTkButton(button_frame, text="No", command=lambda: self.process_request(False, clipboard_content, transcription_text, image_path))
+        self.no_button.pack(side="left", padx=10)
+
+
 
     def process_request(self, include_clipboard, clipboard_content, transcription_text, image_path):
         # Prepare and send data to GPT-4o
