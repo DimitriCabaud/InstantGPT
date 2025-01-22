@@ -1,4 +1,4 @@
-# ![flash.ico](assets/flash.ico){width=8} InstantGPT
+# <img src="assets/flash.ico" alt="flash icon" style="height: 1em; margin-right: 0.5em;"> InstantGPT
 
 InstantGPT is an interactive application designed to provide direct access to OpenAI models from your mouse or a keyboard shortcut. The goal is to enable rapid interactions with OpenAI's models, far faster than the web application or even the ChatGPT Desktop app. By using a shortcut or a click, users can record audio, access clipboard content, process the audio for transcription, and send the transcript along with clipboard content (text or image) to OpenAI models for contextual analysis. This application also distinguishes between user transcriptions and OpenAI model responses. Additionally, it provides access to OpenAI's voice transcription model, Whisper, which is not available in the standard ChatGPT Desktop app.
 
