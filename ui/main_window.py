@@ -6,6 +6,8 @@ from utils.audio import record_audio_until_space, transcribe_audio_with_whisper
 from utils.gpt_client import send_to_llm, send_image_to_gpt4o_with_transcript
 from utils.clipboard import process_clipboard_content
 from PIL import Image, ImageTk, UnidentifiedImageError
+import threading
+
 
 
 class MainApp(ctk.CTk):
@@ -120,15 +122,16 @@ class MainApp(ctk.CTk):
         button_frame = ctk.CTkFrame(self, fg_color=self.cget("fg_color"))  # Applique la couleur de fond pour harmoniser
         button_frame.pack(pady=(20, 0))  # Descend le frame légèrement plus bas
 
-        self.yes_button = ctk.CTkButton(button_frame, text="Yes", command=lambda: self.process_request(True, clipboard_content, transcription_text, image_path))
+        self.yes_button = ctk.CTkButton(button_frame, text="Yes", command=lambda: self.handle_user_choice(True, clipboard_content, transcription_text, image_path))
         self.yes_button.pack(side="left", padx=10)
 
-        self.no_button = ctk.CTkButton(button_frame, text="No", command=lambda: self.process_request(False, clipboard_content, transcription_text, image_path))
+        self.no_button = ctk.CTkButton(button_frame, text="No", command=lambda: self.handle_user_choice(False, clipboard_content, transcription_text, image_path))
         self.no_button.pack(side="left", padx=10)
 
-
-
     def process_request(self, include_clipboard, clipboard_content, transcription_text, image_path):
+        # Show processing screen
+        self.show_processing_screen()
+
         # Prepare and send data to GPT-4o
         transcription_text_with_context = f"The audio transcription contains the user's request: {transcription_text}"
         if include_clipboard:
@@ -148,6 +151,85 @@ class MainApp(ctk.CTk):
 
         # Show results
         self.show_result_screen(include_clipboard, clipboard_content, transcription_text, gpt_response, image_path)
+
+    def show_processing_screen(self):
+        # Clear all previous widgets
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        # Display the processing message
+        self.processing_label = ctk.CTkLabel(
+            self, 
+            text="Processing your request with OpenAI's LLM models...", 
+            font=("Helvetica", 16, "bold"), 
+            wraplength=500
+        )
+        self.processing_label.pack(pady=20)
+
+        # Add the GIF animation for processing
+        if hasattr(sys, '_MEIPASS'):
+            flash_gif_path = os.path.join(sys._MEIPASS, 'assets', 'flash.gif')
+        else:
+            flash_gif_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'flash.gif')
+
+        try:
+            gif_image = Image.open(flash_gif_path)
+            self.processing_frames = []
+            for frame_index in range(gif_image.n_frames):
+                gif_image.seek(frame_index)
+                frame = ctk.CTkImage(light_image=gif_image.copy(), size=(200, 200))
+                self.processing_frames.append(frame)
+
+            self.current_processing_frame = 0
+
+            self.processing_gif_label = ctk.CTkLabel(self, text="")
+            self.processing_gif_label.pack(pady=20)
+
+            def update_processing_frame():
+                if self.processing_gif_label.winfo_exists():
+                    self.processing_gif_label.configure(image=self.processing_frames[self.current_processing_frame])
+                    self.current_processing_frame = (self.current_processing_frame + 1) % len(self.processing_frames)
+                    self.after(100, update_processing_frame)
+
+            update_processing_frame()
+
+            # Force UI update to render changes immediately
+            self.update_idletasks()
+
+        except (FileNotFoundError, UnidentifiedImageError):
+            self.processing_label.configure(text="Error: The GIF file is missing or invalid.")
+
+
+    def handle_user_choice(self, include_clipboard, clipboard_content, transcription_text, image_path):
+        """
+        Handle the user choice from the clipboard prompt and start processing.
+        """
+        # Show processing screen immediately
+        self.show_processing_screen()
+        self.update_idletasks()  # Force immediate UI update
+
+        def process_in_thread():
+            transcription_text_with_context = f"The audio transcription contains the user's request: {transcription_text}"
+            if include_clipboard:
+                if image_path:
+                    gpt_response = send_image_to_gpt4o_with_transcript(image_path, transcription_text_with_context)
+                else:
+                    combined_prompt = (
+                        f"Clipboard content:\n{clipboard_content}\n\n"
+                        f"Audio transcription:\n{transcription_text_with_context}\n"
+                    )
+                    gpt_response = send_to_llm(combined_prompt)
+            else:
+                combined_prompt = (
+                    f"Audio transcription:\n{transcription_text_with_context}\n"
+                )
+                gpt_response = send_to_llm(combined_prompt)
+
+            # Update UI with the results
+            self.show_result_screen(include_clipboard, clipboard_content, transcription_text, gpt_response, image_path)
+
+        # Run the processing in a separate thread
+        threading.Thread(target=process_in_thread, daemon=True).start()
 
     def show_result_screen(self, include_clipboard, clipboard_content, transcription_text, gpt_response, image_path):
         # Stop animation

@@ -7,4 +7,5 @@ Pillow
 customtkinter
 pynput
 pydub
+threading
 
