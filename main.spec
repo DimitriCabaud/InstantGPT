@@ -1,10 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 binaries = [
-    ('venv/Lib/site-packages/pyaudio/_portaudio.cp313-win_amd64.pyd', '.'),  # Inclure la bibliothèque dans le binaire
+    ('venv/Lib/site-packages/pyaudio/_portaudio.cp313-win_amd64.pyd', '.'),  
 ]
+
 datas = [
-    ('assets/recording.gif', '.'),  # Inclure le fichier recording.gif dans le binaire
+    ('assets/recording.gif', 'assets'), 
+    ('assets/flash.gif', 'assets'),     
+    ('assets/flash.ico', 'assets')
 ]
+
 
 a = Analysis(
     ['main.py'],
