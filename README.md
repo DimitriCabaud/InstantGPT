@@ -1,16 +1,17 @@
-# InstantGPT
+# InstantGPT ![flash.ico](assets/flash.ico)
 
-InstantGPT is an interactive application designed to provide direct access to ChatGPT from your mouse or a keyboard shortcut. The goal is to enable rapid interactions with ChatGPT, far faster than the web application or even the ChatGPT Desktop app. By using a shortcut or a click, users can record audio, access clipboard content, process the audio for transcription, and send the transcript along with clipboard content (text or image) to ChatGPT for contextual analysis. This application is built using Python and CustomTkinter (CTk) for the graphical user interface.
+InstantGPT is an interactive application designed to provide direct access to OpenAI models from your mouse or a keyboard shortcut. The goal is to enable rapid interactions with OpenAI's models, far faster than the web application or even the ChatGPT Desktop app. By using a shortcut or a click, users can record audio, access clipboard content, process the audio for transcription, and send the transcript along with clipboard content (text or image) to OpenAI models for contextual analysis. This application also distinguishes between user transcriptions and OpenAI model responses. Additionally, it provides access to OpenAI's voice transcription model, Whisper, which is not available in the standard ChatGPT Desktop app.
 
 ## Features
 
-- **Direct Access to ChatGPT**: Interact with ChatGPT directly using a mouse click or keyboard shortcut.
+- **Direct Access to OpenAI Models**: Interact with OpenAI models directly using a mouse click or keyboard shortcut.
 - **Audio Recording**: Records audio until the SPACE key is pressed and saves it as a WAV file.
 - **Clipboard Processing**: Detects clipboard content (image or text) and processes it for further use.
 - **Audio Transcription**: Utilizes OpenAI's Whisper API to transcribe recorded audio into text.
-- **Image and Text Analysis**: Sends images and transcriptions to OpenAI's GPT-4o API for analysis.
-- **Interactive GUI**: User-friendly interface for displaying results, including clipboard content, transcription, and GPT responses.
-- **Productivity Enhancement**: Aims to save time and streamline workflows by offering faster interactions with ChatGPT.
+- **Image and Text Analysis**: Sends images and transcriptions to OpenAI's GPT-4.0 API for analysis.
+- **Interactive GUI**: User-friendly interface for displaying results, including clipboard content, transcription, and OpenAI model responses.
+- **Productivity Enhancement**: Aims to save time and streamline workflows by offering faster interactions with OpenAI models.
+- **Automated Recording**: Automatically starts recording audio as soon as the program is launched, until the SPACE key is pressed.
 
 ## Installation
 
@@ -55,6 +56,16 @@ InstantGPT is an interactive application designed to provide direct access to Ch
 
 4. Place the `recording.gif` file in the same directory as the script or in the application bundle for distribution.
 
+## Executable Version
+
+A precompiled executable version of InstantGPT is available in the `DIST` folder. To use this executable, ensure that a `.env` file is placed in the same directory as the executable before running it. This file must contain the OpenAI API key with the variable name `OPENAI-API-KEY` in uppercase, formatted as follows:
+
+```env
+OPENAI-API-KEY=your_openai_api_key
+```
+
+Users have the option to either use the precompiled executable or recompile the project themselves. The project was compiled using PyInstaller.
+
 ## Usage
 
 ### Run the Application
@@ -69,7 +80,7 @@ python main.py
 
 #### Recording Audio:
 
-- The application starts recording audio when launched.
+- The application starts recording audio automatically when launched.
 - Press **SPACE** to stop recording.
 
 #### Clipboard Content:
@@ -81,9 +92,10 @@ python main.py
 
 - The recorded audio file is transcribed using OpenAI's Whisper API.
 
-#### GPT-4o Integration:
+#### OpenAI Model Integration:
 
-- Sends clipboard content and transcription to OpenAI's GPT-4o API for contextual responses.
+- Sends clipboard content and transcription to OpenAI's GPT-4.0 API for contextual responses.
+- Uses GPT-4.0 for image analysis and the GPT-3.5-turbo (0.1 model) for other tasks.
 - Displays the response in the GUI.
 
 ## Code Structure
@@ -101,8 +113,8 @@ python main.py
 ### API Interaction:
 
 - **`transcribe_audio_with_whisper`**: Transcribes audio using OpenAI's Whisper API.
-- **`send_image_to_gpt4o_with_transcript`**: Sends image and text data to GPT-4o.
-- **`send_to_gpt4o`**: Sends text prompts to GPT-4o.
+- **`send_image_to_gpt4o_with_transcript`**: Sends image and text data to GPT-4.0.
+- **`send_to_gpt4o`**: Sends text prompts to OpenAI's GPT-3.5-turbo.
 
 ### Clipboard Handling:
 
