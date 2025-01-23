@@ -12,7 +12,7 @@ InstantGPT is an interactive application designed to provide direct access to Op
 - **Audio Recording**: Records audio until the SPACE key is pressed and saves it as a WAV file.
 - **Clipboard Processing**: Detects clipboard content (image or text) and processes it for further use.
 - **Audio Transcription**: Utilizes OpenAI's Whisper API to transcribe recorded audio into text.
-- **Image and Text Analysis**: Sends images and transcriptions to OpenAI's GPT-4.0 API for analysis.
+- **Image and Text Analysis**: Sends images and transcriptions to OpenAI's GPT-4o API for analysis.
 - **Interactive GUI**: User-friendly interface for displaying results, including clipboard content, transcription, and OpenAI model responses.
 - **Productivity Enhancement**: Aims to save time and streamline workflows by offering faster interactions with OpenAI models.
 - **Automated Recording**: Automatically starts recording audio as soon as the program is launched, until the SPACE key is pressed.
@@ -98,8 +98,8 @@ python main.py
 
 #### OpenAI Model Integration:
 
-- Sends clipboard content and transcription to OpenAI's GPT-4.0 API for contextual responses.
-- Uses GPT-4.0 for image analysis and the GPT-3.5-turbo (0.1 model) for other tasks.
+- Sends clipboard content and transcription to OpenAI's GPT-4o API for contextual responses.
+- Uses GPT-4o for image analysis and the o1 model for other tasks.
 - Displays the response in the GUI.
 
 ## Code Structure
@@ -117,8 +117,7 @@ python main.py
 ### API Interaction:
 
 - **`transcribe_audio_with_whisper`**: Transcribes audio using OpenAI's Whisper API.
-- **`send_image_to_gpt4o_with_transcript`**: Sends image and text data to GPT-4.0.
-- **`send_to_gpt4o`**: Sends text prompts to OpenAI's GPT-3.5-turbo.
+- **`send_image_to_gpt4o_with_transcript`**: Sends image and text data to GPT4o.
 
 ### Clipboard Handling:
 
